@@ -1,0 +1,34 @@
+{
+  "name": "resumable-google-drive-uploader",
+  "version": "1.0.0",
+  "description": "Node.js script(s) to allow resumable, chunked upload of files to Google Drive",
+  "main": "authorizer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/themillhousegroup/resumable-google-drive-uploader.git"
+  },
+  "keywords": [
+    "node",
+    "nodejs",
+    "drive",
+    "google",
+    "gdrive",
+    "resumable",
+    "upload",
+    "chunk",
+    "retryable"
+  ],
+  "author": "John Marshall (themillhousegroup)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/themillhousegroup/resumable-google-drive-uploader/issues"
+  },
+  "homepage": "https://github.com/themillhousegroup/resumable-google-drive-uploader#readme",
+  "dependencies": {
+    "googleapis": "^39.2.0",
+    "request": "^2.88.2"
+  }
+}

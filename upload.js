@@ -6,8 +6,8 @@ const TOKEN_PATH = 'token.json';
 const UPLOAD_LOCATION_PATH = 'uploadLocation.json';
 
 // const CHUNK_SIZE_BYTES = 4 * 1024 * 1024; // 4Mb
-// const CHUNK_SIZE_BYTES = 1 * 1024 * 1024; // 1Mb
-const CHUNK_SIZE_BYTES = 256 * 1024; // 256Kb 
+const CHUNK_SIZE_BYTES = 1 * 1024 * 1024; // 1Mb
+// const CHUNK_SIZE_BYTES = 256 * 1024; // 256Kb 
 
 const open = util.promisify(fs.open);
 const read = util.promisify(fs.read);
@@ -34,9 +34,6 @@ async function readUploadLocation() {
 
 // Returns the upload URL on success
 async function beginUpload(accessToken, fileName, mimeType) {
-	var fileMetadata = {
-	  'name': fileName 
-	};
 	var media = {
 	  mimeType, 
 	  name: fileName 
@@ -97,10 +94,9 @@ async function resumeUpload(accessToken, url, fileSize) {
 	return nextByte; 
 };
 
-async function uploadChunk(accessToken, url, startPos, chunkSize, fileName, fileSize) {
+async function uploadChunk(accessToken, url, startPos, chunkSize, fd, fileSize) {
 	const endPos = startPos + chunkSize;
 
-	const fd = await open(fileName);
 	const buffer = Buffer.alloc(chunkSize);
 	const readResult = await read(fd, buffer, 0, chunkSize, startPos); 
 	const body = readResult.buffer;
@@ -166,19 +162,20 @@ async function uploadChunk(accessToken, url, startPos, chunkSize, fileName, file
 		console.log(`${numFinalChunks} final chunk(s) of size ${finalChunkSize}b`);
 
 		console.log(`Uploading from byte ${uploadPosition}`);
+		const fd = await open(fileName);
 
 		if (numFullSizeChunks > 0) {
 			while (uploadPosition < (fileSize - finalChunkSize)) {
 				const percentage = (uploadPosition * 100) / fileSize;
-				console.log(`  Chunk: ${uploadPosition}\t(${percentage}%)`);
-				uploadPosition = await uploadChunk(accessToken, uploadLocation, uploadPosition, CHUNK_SIZE_BYTES, fileName, fileSize);
+				console.log(`  Chunk: ${uploadPosition}\t(${percentage.toFixed(2)}%)`);
+				uploadPosition = await uploadChunk(accessToken, uploadLocation, uploadPosition, CHUNK_SIZE_BYTES, fd, fileSize);
 			} 
 		}
 
 		if (numFinalChunks > 0) {
 				const percentage = (uploadPosition * 100) / fileSize;
-				console.log(`  Chunk: ${uploadPosition}\t(${percentage}%)`);
-				const uploadedBytes = await uploadChunk(accessToken, uploadLocation, uploadPosition, finalChunkSize, fileName, fileSize);
+				console.log(`  Chunk: ${uploadPosition}\t(${percentage.toFixed(2)}%)`);
+				const uploadedBytes = await uploadChunk(accessToken, uploadLocation, uploadPosition, finalChunkSize, fd, fileSize);
 				if (uploadedBytes === fileSize) {
 					console.log(`${uploadedBytes}b uploaded successfully. Removing ${UPLOAD_LOCATION_PATH} file.`);
 					fs.unlinkSync(UPLOAD_LOCATION_PATH);
